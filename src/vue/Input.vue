@@ -7,7 +7,7 @@
                     class="text-input-large col-lg-6 col-sm-12"
                     id="input"
                     placeholder="Prefix"
-                    v-model="hex"
+                    v-model="hexPrefix"
                     :disabled="running"
                 />
                 <input
@@ -31,6 +31,7 @@
             <div class="example hide-prerender">
                 E.g.&nbsp;
                 <span class="monospace">
+                    <!-- todo: fix -->
                     0x<!--
                     --><b v-if="!suffix" v-text="example.chosen"></b
                     ><!--
@@ -46,14 +47,6 @@
                         <i class="left"> </i>
                         Case-sensitive
                     </label>
-                </div>
-                <div class="col-12 col-sm-6 col-md-12 col-lg-6">
-                    <span>Prefix</span>
-                    <label class="switch">
-                        <input type="checkbox" v-model="suffix" :disabled="running" />
-                        <span class="slider"></span>
-                    </label>
-                    <span>Suffix</span>
                 </div>
             </div>
             <div class="threads hide-prerender">
@@ -115,7 +108,8 @@
         data: function () {
             return {
                 threads: this.$props.cores || 4,
-                hex: '',
+                hexPrefix: '',
+                hexSuffix: '',
                 checksum: true,
                 suffix: false,
                 error: false,
@@ -123,15 +117,17 @@
         },
         computed: {
             inputError: function () {
-                return !isValidHex(this.hex);
+                // todo: improve
+                return !isValidHex(this.hexPrefix);
             },
             example: function () {
                 if (this.inputError) {
                     return 'N/A';
                 }
-                const chosen = this.checksum ? this.hex : mixCase(this.hex);
+                // todo: improve
+                const chosen = this.checksum ? this.hexPrefix : mixCase(this.hexPrefix);
                 let random = '';
-                for (let i = 0; i < 40 - this.hex.length; i++) {
+                for (let i = 0; i < 40 - this.hexPrefix.length; i++) {
                     random += mixCase(Math.floor(Math.random() * 16).toString(16));
                 }
                 return { random, chosen };
@@ -148,14 +144,14 @@
             },
         },
         watch: {
-            hex: function () {
-                this.$emit('input-change', 'hex', this.hex);
+            hexPrefix: function () {
+                this.$emit('input-change', 'hexPrefix', this.hexPrefix);
+            },
+            hexSuffix: function () {
+                this.$emit('input-change', 'hexSuffix', this.hexSuffix);
             },
             checksum: function () {
                 this.$emit('input-change', 'checksum', this.checksum);
-            },
-            suffix: function () {
-                this.$emit('input-change', 'suffix', this.suffix);
             },
             threads: function () {
                 this.$emit('input-change', 'threads', this.threads);
@@ -243,33 +239,6 @@
             margin: 0 5px
             input
                 visibility: hidden
-
-        .slider
-            position: absolute
-            cursor: pointer
-            top: 0
-            left: 0
-            right: 0
-            bottom: 0
-            background-color: $primary
-            transition: .2s
-            &:before
-                position: absolute
-                content: ""
-                height: 16px
-                width: 16px
-                left: 4px
-                bottom: 4px
-                background-color: white
-                transition: .2s
-
-    input
-        &:checked + .slider
-            background-color: $primary
-        &:focus + .slider
-            box-shadow: 0 0 1px $primary
-        &:checked + .slider:before
-            transform: translateX(16px)
 
     .threads
         h4

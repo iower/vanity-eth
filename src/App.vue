@@ -33,7 +33,8 @@
                 <!--Statistics-->
                 <div class="col-md-6">
                     <statistics
-                        :hex="input.hex"
+                        :hexPrefix="input.hexPrefix"
+                        :hexSuffix="input.hexSuffix"
                         :checksum="input.checksum"
                         :status="status"
                         :first-tick="firstTick"
@@ -83,7 +84,7 @@
                 threads: 4,
                 cores: 0,
                 result: { address: '', privateKey: '' },
-                input: { hex: '', checksum: true, suffix: false },
+                input: { hexPrefix: '', hexSuffix: '', checksum: true },
                 firstTick: null,
                 error: null,
             };
@@ -99,14 +100,14 @@
             setInput: function (inputType, value) {
                 // eslint-disable-next-line default-case
                 switch (inputType) {
-                    case 'hex':
-                        this.input.hex = value;
+                    case 'hexPrefix':
+                        this.input.hexPrefix = value;
+                        break;
+                    case 'hexSuffix':
+                        this.input.hexSuffix = value;
                         break;
                     case 'checksum':
                         this.input.checksum = value;
-                        break;
-                    case 'suffix':
-                        this.input.suffix = value;
                         break;
                     case 'threads':
                         this.threads = value;
@@ -256,7 +257,7 @@
                         worker.terminate();
                     }
                 };
-                const input = { checksum: true, hex: 'f'.repeat(5), suffix: false };
+                const input = { checksum: true, hexPrefix: 'f'.repeat(5), hexSuffix: '' };
                 console.info('Starting benchmark with 1 core...');
                 worker.postMessage(input);
             },

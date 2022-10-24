@@ -21,32 +21,37 @@ const getRandomWallet = () => {
     const randbytes = randomBytes(32);
     return {
         address: privateToAddress(randbytes).toString('hex'),
-        privKey: randbytes.toString('hex')
+        privKey: randbytes.toString('hex'),
     };
 };
 
 /**
  * Check if a wallet respects the input constraints
  * @param address
- * @param input
+ * @param prefix
+ * @param suffix
  * @param isChecksum
- * @param isSuffix
  * @returns {boolean}
  */
-const isValidVanityAddress = (address, input, isChecksum, isSuffix) => {
-    const subStr = isSuffix ? address.substr(40 - input.length) : address.substr(0, input.length);
+const isValidVanityAddress = (address, prefix, suffix, isChecksum) => {
+    const subStrStart = address.substr(0, prefix.length);
+    const subStrEnd = address.substr(40 - suffix.length);
 
     if (!isChecksum) {
-        return input === subStr;
+        return prefix === subStrStart && suffix === subStrEnd;
     }
-    if (input.toLowerCase() !== subStr) {
+    if (prefix.toLowerCase() !== subStrStart || suffix.toLowerCase() !== subStrEnd) {
         return false;
     }
 
-    return isValidChecksum(address, input, isSuffix);
+    return isValidChecksum(address, prefix, suffix);
 };
 
-const isValidChecksum = (address, input, isSuffix) => {
+const isValidChecksum = (address, prefix, suffix) => {
+    const input = prefix;
+    const isSuffix = false;
+    // todo: improve
+
     const hash = keccak('keccak256').update(address).digest().toString('hex');
     const shift = isSuffix ? 40 - input.length : 0;
 
@@ -70,37 +75,38 @@ const toChecksumAddress = (address) => {
 
 /**
  * Generate a lot of wallets until one satisfies the input constraints
- * @param input - String chosen by the user
+ * @param prefix - String chosen by the user
+ * @param suffix - String chosen by the user
  * @param isChecksum - Is the input case-sensitive
- * @param isSuffix - Is it a suffix, or a prefix
  * @param cb - Callback called after x attempts, or when an address if found
  * @returns
  */
-const getVanityWallet = (input, isChecksum, isSuffix, cb) => {
-    input = isChecksum ? input : input.toLowerCase();
+const getVanityWallet = (prefix, suffix, isChecksum, cb) => {
+    prefix = isChecksum ? prefix : prefix.toLowerCase();
+    suffix = isChecksum ? suffix : suffix.toLowerCase();
     let wallet = getRandomWallet();
     let attempts = 1;
 
-    while (!isValidVanityAddress(wallet.address, input, isChecksum, isSuffix)) {
+    while (!isValidVanityAddress(wallet.address, prefix, suffix, isChecksum)) {
         if (attempts >= step) {
-            cb({attempts});
+            cb({ attempts });
             attempts = 0;
         }
         wallet = getRandomWallet();
         attempts++;
     }
-    cb({address: '0x' + toChecksumAddress(wallet.address), privKey: wallet.privKey, attempts});
+    cb({ address: '0x' + toChecksumAddress(wallet.address), privKey: wallet.privKey, attempts });
 };
 
 onmessage = function (event) {
     const input = event.data;
     try {
-        getVanityWallet(input.hex, input.checksum, input.suffix, (message) => postMessage(message));
+        getVanityWallet(input.hexPrefix, input.hexSuffix, input.checksum, (message) => postMessage(message));
     } catch (err) {
-        self.postMessage({error: err.toString()});
+        self.postMessage({ error: err.toString() });
     }
 };
 
 module.exports = {
-    onmessage
+    onmessage,
 };

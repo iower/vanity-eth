@@ -46,13 +46,17 @@
             };
         },
         props: {
-            hex: String,
+            hexPrefix: String,
+            hexSuffix: String,
             checksum: Boolean,
             status: String,
             firstTick: {},
         },
         watch: {
-            hex() {
+            hexPrefix() {
+                this.count = 0;
+            },
+            hexSuffix() {
                 this.count = 0;
             },
             checksum() {
@@ -61,10 +65,11 @@
         },
         computed: {
             inputError: function () {
-                return !isValidHex(this.hex);
+                // todo: improve
+                return !isValidHex(this.hexPrefix);
             },
             difficulty: function () {
-                return this.inputError ? 'N/A' : computeDifficulty(this.hex, this.checksum);
+                return this.inputError ? 'N/A' : computeDifficulty(this.hexPrefix, this.checksum);
             },
             probability50() {
                 return this.inputError ? 0 : Math.floor(Math.log(0.5) / Math.log(1 - 1 / this.difficulty));
