@@ -1,15 +1,25 @@
 <template>
     <div class="panel" id="input-panel">
         <form :class="{ error: inputError }" @submit.prevent="startGen">
+            <div class="row">
+                <input
+                    type="text"
+                    class="text-input-large col-lg-6 col-sm-12"
+                    id="input"
+                    placeholder="Prefix"
+                    v-model="hex"
+                    :disabled="running"
+                />
+                <input
+                    type="text"
+                    class="text-input-large col-lg-6 col-sm-12"
+                    id="input"
+                    placeholder="Suffix"
+                    v-model="hexSuffix"
+                    :disabled="running"
+                />
+            </div>
             <div class="error-text">Numbers and letters from A to F only</div>
-            <input
-                type="text"
-                class="text-input-large"
-                id="input"
-                :placeholder="suffix ? 'Suffix' : 'Prefix'"
-                v-model="hex"
-                :disabled="running"
-            />
             <div class="row justify-content-center hide-render">
                 <div class="spinner">
                     <div></div>
